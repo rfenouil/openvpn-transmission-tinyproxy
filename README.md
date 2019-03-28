@@ -36,7 +36,7 @@ Bundled providers and config files were removed from this copy of the repository
 
 As opposed to the original concept, the idea here is that the user manually selects and download openvpn (*.ovpn) files and put them in the corresponding volume. These files must be 'ready to use' (i.e. it must already contain credentials, while scripts from original repository create them with provided login and password).
 
-A random will be chosen on startup, unless a specific one is selected on startup (see variable `OPENVPN_CONFIG`). 
+A random configuration will be chosen from files in mounted volume, unless a specific one or a subset is selected on startup (see variable `OPENVPN_CONFIG`). 
 
 
 ## Run container from Docker registry
@@ -64,19 +64,18 @@ A second (optional) volume is expected to contain openVPN configuration files th
 If you did not prepare openVPN configuration files and want to rely on NordVPN 'recommended' selection of server, you can omit this volume but you must set the environment variables `OPENVPN_USERNAME` and `OPENVPN_PASSWORD` to allow scripts preparing the configuration file for you.
 
 
-The `OPENVPN_CONFIG` is an optional variable.
+The `OPENVPN_CONFIG_SELECT` is an optional variable.
 
 If user provides openVPN configuration files in a folder, he can use this variable to provide a regular expression selecting a sublist of files from which connection will be made.
+```
+-e "OPENVPN_CONFIGFILE_SELECT_REGEX=FR*"
+```
 
-```
--e "OPENVPN_CONFIG=FR*"
-```
-
-If user provides username and password as environment variables (rely on 'recommended' server configuration from NordVPN website), it will be used to select server country (TODO: add available values).
-
-```
--e "OPENVPN_CONFIG=FR"
-```
+If user provides `OPENVPN_USERNAME` and `OPENVPN_PASSWORD` environment variables, a server configuration will be downloaded from NordVPN website. 
+The following variables can be set to select the 'best' configuration file from NordVPN server:
+- `NORDVPN_COUNTRY` can be a country name (france, italy, ...) or a country code (fr, it, us, uk, ...). This value is mandatory for the algorithm to work. If no value is provided, a default value will be used (defined in script 'NordVPN_getConfig.sh'). If an invalid (not recognized by NordVPN servers) value is specified, an error is raised (check logs).
+ - `NORDVPN_GROUP` can be the name (or identifier) of a group of servers configured for specific use (as defined by NordVPN). Valid values as of March 2019: "Double VPN", "Onion Over VPN", "Ultra fast TV", "Anti DDoS", "Dedicated IP", "Standard VPN servers", "Netflix USA", "P2P", "Obfuscated Servers", "Europe", "The Americas", "Asia Pacific", "Africa, the Middle East and India". This variable is optional but helps to get a server suited for your application. If this parameter is invalid or cannot be satisfied, it will be ignored with a warning (check logs).
+- `NORDVPN_TECHNOLOGY` must be 'udp' or 'tcp'. If an invalid value is specified (or missing), it will be replaced by default value (defined in script 'NordVPN_getConfig.sh') with a warning.
 
 
 If you provide a list and the selected server goes down, after the value of ping-timeout the container will be restarted and a server will be randomly chosen, note that the faulty server can be chosen again, if this should occur, the container will be restarted again until a working server is selected.

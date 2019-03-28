@@ -26,10 +26,12 @@ RUN curl -L -o /tmp/release.zip https://github.com/Secretmapper/combustion/archi
     && unzip /tmp/release.zip -d /opt/transmission-ui/ \
     && rm /tmp/release.zip
 
+# kettu
+RUN git clone git://github.com/endor/kettu.git /opt/transmission-ui/kettu
+
 # transmission-web-control
-RUN git clone git://github.com/endor/kettu.git /opt/transmission-ui/kettu \
-    && mkdir /opt/transmission-ui/transmission-web-control \
-    && curl -L https://github.com/ronggang/twc-release/raw/master/src.tar.gz | tar -C /opt/transmission-ui/transmission-web-control/ -xzv \
+RUN mkdir /opt/transmission-ui/transmission-web-control \
+    && curl -L `curl -s https://api.github.com/repos/ronggang/transmission-web-control/releases/latest | jq --raw-output '.tarball_url'` | tar -C /opt/transmission-ui/transmission-web-control/ --strip-components=2 -xzv \
     && ln -s /usr/share/transmission/web/style /opt/transmission-ui/transmission-web-control \
     && ln -s /usr/share/transmission/web/images /opt/transmission-ui/transmission-web-control \
     && ln -s /usr/share/transmission/web/javascript /opt/transmission-ui/transmission-web-control \
@@ -54,8 +56,13 @@ ADD openvpn/ /etc/openvpn/
 ADD transmission/ /etc/transmission/
 ADD tinyproxy /opt/tinyproxy/
 
+
+
+#### Define environment variables used for configuration
 ENV OPENVPN_USERNAME=**None** \
     OPENVPN_PASSWORD=**None** \
+    
+    OPENVPN_CONFIGFILE_SELECT_REGEX= \
     GLOBAL_APPLY_PERMISSIONS=true \
     TRANSMISSION_ALT_SPEED_DOWN=50 \
     TRANSMISSION_ALT_SPEED_ENABLED=false \
@@ -144,7 +151,6 @@ ENV OPENVPN_USERNAME=**None** \
     WEBPROXY_ENABLED=true \
     WEBPROXY_PORT=8888
     
-
 
 
 #### Expose ports (transmission and proxy)
