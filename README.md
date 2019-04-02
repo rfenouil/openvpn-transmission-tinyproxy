@@ -1,3 +1,5 @@
+# Most refactoring done but not tested yet (NOT FUNCTIONAL)
+
 # OpenVPN, Transmission with WebUI, and VPN proxy
 
 [![Docker Automated build](https://img.shields.io/docker/automated/fenouil/openvpn-transmission-tinyproxy.svg)](https://hub.docker.com/r/fenouil/openvpn-transmission-tinyproxy/)
