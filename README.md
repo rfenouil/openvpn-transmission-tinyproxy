@@ -6,7 +6,7 @@
 
 ## About this repository copy
 
-All initial work is imported from another repository [haugene/docker-transmission-openvpn (commit 46ba5e0995dfbb185abd9e083e1edec3ce6fb785)](https://github.com/haugene/docker-transmission-openvpn).
+All initial work is imported from another repository [haugene/docker-transmission-openvpn](https://github.com/haugene/docker-transmission-openvpn) (commit 46ba5e0995dfbb185abd9e083e1edec3ce6fb785).
 
 This new repository has been created for maintaining a working simplified ARM version, to be used on my Rock64 device with [openmediavault](https://www.openmediavault.org/) (should work on other arm configurations too).
 
@@ -18,7 +18,7 @@ I use [NordVPN](https://nordvpn.com/) and I plan to rely on either:
 I use this project as an exercise to understand better how docker technology works.
 Since my needs are less complex than what is implemented in original repository, most of my work consists in stripping-down and simplifying original code.
 
-Documentation (this file) and scripts/folders names and comments have been adapted to this repository but feel free to report inconsistencies or comments in issues.
+Documentation (this file) and scripts/folders names (and comments) have been adapted to this repository but feel free to report inconsistencies (or comments) in issues.
 
 
 ## Introduction
