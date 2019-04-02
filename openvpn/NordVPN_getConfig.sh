@@ -136,7 +136,7 @@ download_hostname() {
 
 ######## Customize downloaded configuration files
 # Modify '*.ovpn' file(s) to search credentials in '/config/openvpn-credentials.txt' (created by start script)
-# and replace default ping arguments by desired values
+# and replace default ping arguments by more desirable values in this context (overriden by eventual openvpn command line options)
 
 update_hostname() {
     log "Checking line endings"
@@ -154,7 +154,7 @@ update_hostname() {
 
 ######## Script
 # Expected environment variables:
-# NORDVPN_CONFIGNAME is optional (select server to be downloaded by name directly, all other variables are ignored)
+# NORDVPN_CONFIGNAME is optional (select server to be downloaded by name directly, if set all other variables are ignored)
 # NORDVPN_COUNTRY    is required, recommendation algorithm ignores all other filters if country is not set (result is not guaranteed to support tcp or udp technology), defaults to 'fr' otherwise
 # NORDVPN_TECHNOLOGY is required to be 'udp' or 'tcp' for selection of server, defaults to 'tcp' otherwise
 # NORDVPN_GROUP      is optional (if not set, relies on 'recommended' server algorithm)

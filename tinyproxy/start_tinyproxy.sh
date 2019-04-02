@@ -1,10 +1,17 @@
 #!/bin/bash
 
-# Source our persisted env variables from container startup
-. /etc/transmission/environment-variables.sh
+# Starting tinyproxy !
+# Modifies tinyproxy.conf file (created during tinyproxy installation in docker setup) with appropriate values before starting service
+
+# This script is called by openVPN when tunnel gets connected (tunnelUp.sh), but environment variables defined in parent shell are not copied.
+# Following script has been created (dockerize) during startup in parent shell to get appropriate variables defined in subshells (started by openVPN).  
+. /importedScripts/transmission/dockerize_environment_variables_for_export.sh
+
+
 
 find_proxy_conf()
 {
+    # Created during tinyproxy installation, location depends on platform
     if [[ -f /etc/tinyproxy.conf ]]; then
       PROXY_CONF='/etc/tinyproxy.conf'
     elif [[ -f /etc/tinyproxy/tinyproxy.conf ]]; then
@@ -37,6 +44,8 @@ set_port()
   echo "Setting tinyproxy port to $1";
   sed -i -e"s,^Port .*,Port $1," $2
 }
+
+
 
 if [[ "${WEBPROXY_ENABLED}" = "true" ]]; then
 

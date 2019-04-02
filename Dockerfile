@@ -15,7 +15,6 @@ RUN apt-get update \
                            transmission-cli \
                            transmission-common \
                            transmission-daemon \
-                           ufw \
                            unzip
 
 
@@ -44,26 +43,44 @@ RUN curl -L https://github.com/jwilder/dockerize/releases/download/v0.6.0/docker
 
 
 
-#### Create local user (???)
-#RUN groupmod -g 1000 users \
-#    && useradd -u 911 -U -d /config -s /bin/false abc \
-#    && usermod -G users abc
+#### Create a local user in container 
+# Used to start transmission after altering its uid (to specified system user uid) for file permissions
+RUN groupmod -g 1000 users \
+    && useradd -u 911 -U -d /config -s /bin/false tempContainerUser \
+    && usermod -G users tempContainerUser
 
 
 
 #### Add configuration and scripts
-ADD openvpn/ /etc/openvpn/
-ADD transmission/ /etc/transmission/
-ADD tinyproxy /opt/tinyproxy/
+ADD openvpn/      /importedScripts/openvpn/
+ADD transmission/ /importedScripts/transmission/
+ADD tinyproxy/    /importedScripts/tinyproxy/
 
 
 
 #### Define environment variables used for configuration
-ENV OPENVPN_USERNAME=**None** \
-    OPENVPN_PASSWORD=**None** \
-    
+ENV NORDVPN_USERNAME=**None** \
+    NORDVPN_PASSWORD=**None** \
+    \
+    NORDVPN_CONFIGNAME= \
+    NORDVPN_COUNTRY= \
+    NORDVPN_TECHNOLOGY= \
+    NORDVPN_GROUP= \
+    \
     OPENVPN_CONFIGFILE_SELECT_REGEX= \
-    GLOBAL_APPLY_PERMISSIONS=true \
+    OPENVPN_OPTS="--inactive 3600 --ping 10 --ping-exit 60 --pull-filter ignore ping" \
+    \
+    PUID=\
+    PGID=\
+    \
+    LOCAL_NETWORK=192.168.0.0/16 \
+    DROP_DEFAULT_ROUTE=true \
+    \
+    TRANSMISSION_HOME=/data/transmission-home \
+    TRANSMISSION_DOWNLOAD_DIR=/data/completed \
+    TRANSMISSION_INCOMPLETE_DIR=/data/incomplete \
+    TRANSMISSION_WATCH_DIR=/data/watch \
+    \
     TRANSMISSION_ALT_SPEED_DOWN=50 \
     TRANSMISSION_ALT_SPEED_ENABLED=false \
     TRANSMISSION_ALT_SPEED_TIME_BEGIN=540 \
@@ -77,7 +94,6 @@ ENV OPENVPN_USERNAME=**None** \
     TRANSMISSION_BLOCKLIST_URL=http://www.example.com/blocklist \
     TRANSMISSION_CACHE_SIZE_MB=4 \
     TRANSMISSION_DHT_ENABLED=true \
-    TRANSMISSION_DOWNLOAD_DIR=/data/completed \
     TRANSMISSION_DOWNLOAD_LIMIT=100 \
     TRANSMISSION_DOWNLOAD_LIMIT_ENABLED=0 \
     TRANSMISSION_DOWNLOAD_QUEUE_ENABLED=true \
@@ -85,7 +101,6 @@ ENV OPENVPN_USERNAME=**None** \
     TRANSMISSION_ENCRYPTION=1 \
     TRANSMISSION_IDLE_SEEDING_LIMIT=30 \
     TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED=false \
-    TRANSMISSION_INCOMPLETE_DIR=/data/incomplete \
     TRANSMISSION_INCOMPLETE_DIR_ENABLED=true \
     TRANSMISSION_LPD_ENABLED=false \
     TRANSMISSION_MAX_PEERS_GLOBAL=200 \
@@ -135,19 +150,11 @@ ENV OPENVPN_USERNAME=**None** \
     TRANSMISSION_UPLOAD_LIMIT_ENABLED=0 \
     TRANSMISSION_UPLOAD_SLOTS_PER_TORRENT=14 \
     TRANSMISSION_UTP_ENABLED=true \
-    TRANSMISSION_WATCH_DIR=/data/watch \
     TRANSMISSION_WATCH_DIR_ENABLED=true \
-    TRANSMISSION_HOME=/data/transmission-home \
     TRANSMISSION_WATCH_DIR_FORCE_GENERIC=false \
-    ENABLE_UFW=false \
-    UFW_ALLOW_GW_NET=false \
-    UFW_EXTRA_PORTS= \
-    UFW_DISABLE_IPTABLES_REJECT=false \
-    TRANSMISSION_WEB_UI=\
-    PUID=\
-    PGID=\
-    TRANSMISSION_WEB_HOME= \
-    DROP_DEFAULT_ROUTE= \
+    TRANSMISSION_WEB_HOME= \   
+    TRANSMISSION_WEB_UI=transmission-web-control \
+    \
     WEBPROXY_ENABLED=true \
     WEBPROXY_PORT=8888
     
@@ -159,7 +166,7 @@ EXPOSE 8888
 
 
 
-#### Run
-CMD ["dumb-init", "/etc/openvpn/start.sh"]
+#### Run 'start_openVPN.sh' script that starts everything
+CMD ["dumb-init", "/importedScripts/openvpn/start_openVPN.sh"]
 
 

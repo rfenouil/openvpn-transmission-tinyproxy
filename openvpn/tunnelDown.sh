@@ -1,4 +1,4 @@
 #!/bin/bash
 
-/etc/transmission/stop.sh
-[[ ! -f /opt/tinyproxy/stop.sh ]] || /opt/tinyproxy/stop.sh
+/importedScripts/transmission/stop_transmission.sh
+/importedScripts/tinyproxy/stop_tinyproxy.sh

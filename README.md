@@ -7,17 +7,17 @@
 ## About this repository copy
 
 All initial work is imported from another repository: haugene/docker-transmission-openvpn (commit 46ba5e0995dfbb185abd9e083e1edec3ce6fb785)
-This new repository has been created for maintaining a working arm version, to be used on my Rock64 device with openmediavault (but should work on other arm configurations too).
+This new repository has been created for maintaining a working simplified arm version, to be used on my Rock64 device with [openmediavault](https://www.openmediavault.org/) (should work on other arm configurations too).
 
-All configuration files bundled in initial repository are removed.
-I use NordVPN and I plan to rely on either:
-- a small amount of openVPN configuration files (*.ovpn) files selected and downloaded manually
-- a script that extracts 'recommended' server from NordVPN website (if user provides credentials as environment variables)
+All openvpn configuration files bundled in initial repository are removed.
+I use [NordVPN](https://nordvpn.com/) and I plan to rely on either:
+- a small amount of openVPN configuration files (*.ovpn) files downloaded and customized manually
+- a script that extracts 'recommended' server from NordVPN website/API (if user provides credentials as environment variables)
 
 I use this project as an exercise to understand better how docker technology works.
 Since my needs are less complex than what is implemented in original repository, most of my work consists in stripping-down and simplifying original code.
 
-Documentation (this file) has been adapted to this repository but feel free to report inconsistencies or comments in issues.
+Documentation (this file) and scripts/folders names and comments have been adapted to this repository but feel free to report inconsistencies or comments in issues.
 
 
 ## Introduction
@@ -32,16 +32,24 @@ It also bundles an installation of Tinyproxy to proxy web traffic over your VPN.
  
 ### Supported providers
 
-Bundled providers and config files were removed from this copy of the repository.
+Bundled providers and configuration files were removed from this copy of the repository.
 
-As opposed to the original concept, the idea here is that the user manually selects and download openvpn (*.ovpn) files and put them in the corresponding volume. These files must be 'ready to use' (i.e. it must already contain credentials, while scripts from original repository create them with provided login and password).
+As opposed to the original concept, the idea here is that the user manually selects and download openvpn (*.ovpn) files and put them in a local folder that is mounted as a volume inside container. These files must be 'ready to use' (i.e. it must already contain credentials).
 
-A random configuration will be chosen from files in mounted volume, unless a specific one or a subset is selected on startup (see variable `OPENVPN_CONFIG`). 
+A random configuration will be chosen from available files in mounted volume, unless a specific one (or a subset) is selected on startup using a regular expression (see variable `OPENVPN_CONFIGFILE_SELECT_REGEX`).
+
+Alternatively, the user can provide his NordVPN username and password to get a configuration file automatically downloaded and configured from NordVPN website/API.
+In this case, additional variables can be used to select the best available server based on various parameters (see below). 
 
 
-## Run container from Docker registry
+## Run container 
+
 The container is available from the Docker registry and this is the simplest way to get it.
-To run the container use this command:
+By default, the container defines the script 'openvpn/start_openVPN.sh' as entry-point (first thing executed on docker start).
+
+### Command line
+
+The container could be started using this command (adding eventual modifications of default environment variables using `-e VAR=value`):
 
 ```
 $ docker run --cap-add=NET_ADMIN --device=/dev/net/tun -d \
@@ -52,75 +60,58 @@ $ docker run --cap-add=NET_ADMIN --device=/dev/net/tun -d \
               --log-driver json-file \
               --log-opt max-size=10m \
               -p 9091:9091 \
-              fenouil/openvpn-transmission-tinyproxy
+              -p 8888:8888 \
+              rfenouil/openvpn-transmission-tinyproxy
 ```
 
-The container expects a 'data' volume to be mounted.
-This is where Transmission will store your downloads, incomplete downloads and look for a watch directory for new .torrent files.
-By default a folder named transmission-home will also be created under /data, this is where Transmission stores its state.
+### OMV docker plugin
 
-A second (optional) volume is expected to contain openVPN configuration files that will be used to establish connection.
+However, since it has been tailored for small ARM devices using openmediavault (OMV), a direct importation (docker pull) using docker graphic interface is the simplest and recommended way to use it.
 
-If you did not prepare openVPN configuration files and want to rely on NordVPN 'recommended' selection of server, you can omit this volume but you must set the environment variables `OPENVPN_USERNAME` and `OPENVPN_PASSWORD` to allow scripts preparing the configuration file for you.
+To do so, pull `rfenouil/openvpn-transmission-tinyproxy` image from dockerhub, then create a container and modify the following parameters before starting it:
 
+- Run container in privileged mode.
+- Set container to restart on failure.
+- Mount volume '/data' to an existing local folder. It will be used for storing downloads (complete/incomplete/wath) and transmission home folder.
+- Eventually mount volume '/ovpnFiles' to an existing local folder containing pre-configured *.ovpn files (if you don't want to get them downloaded from NordVPN API).
+- Customize default parameters by modifying values in environment variables (see below).
 
-The `OPENVPN_CONFIG_SELECT` is an optional variable.
+If user provides openVPN configuration files in a folder (mounted in '/ovpnFiles' volume), he can use `OPENVPN_CONFIGFILE_SELECT_REGEX` variable to provide a regular expression selecting a sublist of files from which connection will be made.
 
-If user provides openVPN configuration files in a folder, he can use this variable to provide a regular expression selecting a sublist of files from which connection will be made.
-```
--e "OPENVPN_CONFIGFILE_SELECT_REGEX=FR*"
-```
-
-If user provides `OPENVPN_USERNAME` and `OPENVPN_PASSWORD` environment variables, a server configuration will be downloaded from NordVPN website. 
+If user provides `NORDVPN_USERNAME` and `NORDVPN_PASSWORD` environment variables, a server configuration will be downloaded from NordVPN website and configured. 
 The following variables can be set to select the 'best' configuration file from NordVPN server:
-- `NORDVPN_COUNTRY` can be a country name (france, italy, ...) or a country code (fr, it, us, uk, ...). This value is mandatory for the algorithm to work. If no value is provided, a default value will be used (defined in script 'NordVPN_getConfig.sh'). If an invalid (not recognized by NordVPN servers) value is specified, an error is raised (check logs).
- - `NORDVPN_GROUP` can be the name (or identifier) of a group of servers configured for specific use (as defined by NordVPN). Valid values as of March 2019: "Double VPN", "Onion Over VPN", "Ultra fast TV", "Anti DDoS", "Dedicated IP", "Standard VPN servers", "Netflix USA", "P2P", "Obfuscated Servers", "Europe", "The Americas", "Asia Pacific", "Africa, the Middle East and India". This variable is optional but helps to get a server suited for your application. If this parameter is invalid or cannot be satisfied, it will be ignored with a warning (check logs).
-- `NORDVPN_TECHNOLOGY` must be 'udp' or 'tcp'. If an invalid value is specified (or missing), it will be replaced by default value (defined in script 'NordVPN_getConfig.sh') with a warning.
+- `NORDVPN_CONFIGNAME` is optional but can be set to an existing NordVPN configuration name (e.g. it69.nordvpn.com.tcp). In this case, no server recommendation is made and all other `NORDVPN_*` variables are ignored. The selected configuration is directly downloaded, configured (credentials added), and used to start openVPN.
+- `NORDVPN_COUNTRY` can be a country name (france, italy, ...) or a country code (fr, it, us, uk, ...). This value is mandatory for the server recommendation algorithm to work. If no value is provided, a default value will be used (fr, as defined in script 'NordVPN_getConfig.sh'). If an invalid (not recognized by NordVPN servers) value is specified, an error is raised (check logs).
+- `NORDVPN_GROUP` can be the name (or identifier) of a group of servers configured for specific use (as defined by NordVPN). Valid values as of March 2019: "Double VPN", "Onion Over VPN", "Ultra fast TV", "Anti DDoS", "Dedicated IP", "Standard VPN servers", "Netflix USA", "P2P", "Obfuscated Servers", "Europe", "The Americas", "Asia Pacific", "Africa, the Middle East and India". This variable is optional but helps to get a server suited for your application. If this parameter is invalid or cannot be satisfied, it will be ignored with a warning (check logs).
+- `NORDVPN_TECHNOLOGY` must be 'udp' or 'tcp'. If an invalid value is specified (or missing), it will be replaced by default value ('tcp', as defined in script 'NordVPN_getConfig.sh') with a warning.
+
+If the selected server goes down, after the value of ping-timeout the container will be restarted and a new server will be chosen, note that the faulty server can be chosen again. If this should occur, the container will be restarted again until a working server is selected.
+
+To make sure this work in all cases, the options `--inactive 3600 --ping 10 --ping-exit 60 --pull-filter ignore ping` are added by default to `OPENVPN_OPTS` variable.
+
+A general summary of environment variables is available in header comments of script 'openvpn/start_openVPN.sh', and additional details below.
 
 
-If you provide a list and the selected server goes down, after the value of ping-timeout the container will be restarted and a server will be randomly chosen, note that the faulty server can be chosen again, if this should occur, the container will be restarted again until a working server is selected.
+### Mandatory environment variables
 
-To make sure this work in all cases, you should add ```--pull-filter ignore ping``` to your OPENVPN_OPTS variable. ???
-
-
-### Required environment options
-
-None, all mandatory VPN informations (including credentials) should already be contained in openVPN configuration files (*.ovpn) provided by user.
-
-If user wants to use NordVPN recommended server, he must provide environment variables `OPENVPN_USERNAME` and `OPENVPN_PASSWORD`.
+None, all mandatory VPN informations (including credentials) can already be contained in openVPN configuration files (*.ovpn) provided by user.
+If user wants to download and use NordVPN recommended server, he must provide environment variables `NORDVPN_USERNAME` __and__ `NORDVPN_PASSWORD`.
 
 
 ### Network configuration options
 | Variable | Function | Example |
 |----------|----------|-------|
-|`OPENVPN_CONFIG` | Sets the OpenVPN endpoint to connect to. | `OPENVPN_CONFIG=UK Southampton`|
 |`OPENVPN_OPTS` | Will be passed to OpenVPN on startup | See [OpenVPN doc](https://openvpn.net/index.php/open-source/documentation/manuals/65-openvpn-20x-manpage.html) |
-|`LOCAL_NETWORK` | Sets the local network that should have access. Accepts comma separated list. | `LOCAL_NETWORK=192.168.0.0/24`|
+|`LOCAL_NETWORK` | Sets the local network that should have access. Accepts comma separated list. | `LOCAL_NETWORK=192.168.0.0/16`|
 |`CREATE_TUN_DEVICE` | Creates /dev/net/tun device inside the container, mitigates the need mount the device from the host | `CREATE_TUN_DEVICE=true`|
 
-### Firewall configuration options
-When enabled, the firewall blocks everything except traffic to the peer port and traffic to the rpc port from the LOCAL_NETWORK and the internal docker gateway.
-
-If TRANSMISSION_PEER_PORT_RANDOM_ON_START is enabled then it allows traffic to the range of peer ports defined by TRANSMISSION_PEER_PORT_RANDOM_HIGH and TRANSMISSION_PEER_PORT_RANDOM_LOW.
-
-| Variable | Function | Example |
-|----------|----------|-------|
-|`ENABLE_UFW` | Enables the firewall | `ENABLE_UFW=true`|
-|`UFW_ALLOW_GW_NET` | Allows the gateway network through the firewall. Off defaults to only allowing the gateway. | `UFW_ALLOW_GW_NET=true`|
-|`UFW_EXTRA_PORTS` | Allows the comma separated list of ports through the firewall. Respects UFW_ALLOW_GW_NET. | `UFW_EXTRA_PORTS=9910,23561,443`|
-|`UFW_DISABLE_IPTABLES_REJECT` | Prevents the use of `REJECT` in the `iptables` rules, for hosts without the `ipt_REJECT` module (such as the Synology NAS). | `UFW_DISABLE_IPTABLES_REJECT=true`|
-
-### Permission configuration options ???
-By default the startup script applies a default set of permissions and ownership on the transmission download, watch and incomplete directories. The GLOBAL_APPLY_PERMISSIONS directive can be used to disable this functionality.
-
-| Variable | Function | Example |
-|----------|----------|-------|
-|`GLOBAL_APPLY_PERMISSIONS` | Disable setting of default permissions | `GLOBAL_APPLY_PERMISSIONS=false`|
 
 ### Alternative web UIs
 You can override the default web UI by setting the ```TRANSMISSION_WEB_HOME``` environment variable. If set, Transmission will look there for the Web Interface files, such as the javascript, html, and graphics files.
 
 [Combustion UI](https://github.com/Secretmapper/combustion), [Kettu](https://github.com/endor/kettu) and [Transmission-Web-Control](https://github.com/ronggang/transmission-web-control/) come bundled with the container. You can enable either of them by setting```TRANSMISSION_WEB_UI=combustion```, ```TRANSMISSION_WEB_UI=kettu``` or ```TRANSMISSION_WEB_UI=transmission-web-control```, respectively. Note that this will override the ```TRANSMISSION_WEB_HOME``` variable if set.
+
+By default `TRANSMISSION_WEB_UI` is set to `transmission-web-control`
 
 | Variable | Function | Example |
 |----------|----------|-------|
@@ -154,7 +145,7 @@ This container also contains a web-proxy server to allow you to tunnel your web-
 This is useful if you are using a private tracker that needs to see you login from the same IP address you are torrenting from.
 The default listening port is 8888. Note that only ports above 1024 can be specified as all ports below 1024 are privileged
 and would otherwise require root permissions to run.
-Remember to add a port binding for your selected (or default) port when starting the container.
+Port 8888 is exposed by container but if you modify default port number value, remember to add a port binding for your selected port when starting the container.
 
 | Variable | Function | Example |
 |----------|----------|-------|
@@ -164,19 +155,22 @@ Remember to add a port binding for your selected (or default) port when starting
 ### User configuration options
 
 By default everything will run as the root user. However, it is possible to change who runs the transmission process.
-You may set the following parameters to customize the user id that runs transmission.
+You may set the following parameters to customize the user id (uid) that runs transmission.
+A default local user (actual name is irrelevant) is created in docker image but its uid/gid will be changed to specified values. 
 
 | Variable | Function | Example |
 |----------|----------|-------|
 |`PUID` | Sets the user id who will run transmission | `PUID=1000`|
 |`PGID` | Sets the group id for the transmission user | `PGID=100` |
 
-### Dropping default route from iptables (advanced) (nordVPN compatible ???)
+It is specially useful to ensure compatible files permissions flags and ownership between container (files written by transmission process) and the actual file system (as seen from outside container).
+
+### Dropping default route from iptables (advanced)
 
 Some VPNs do not override the default route, but rather set other routes with a lower metric.
 This might lead to the default route (your untunneled connection) to be used.
 
-To drop the default route set the environment variable `DROP_DEFAULT_ROUTE` to `true`.
+By default, the environment variable `DROP_DEFAULT_ROUTE` is set to `true`.
 
 *Note*: This is not compatible with all VPNs. You can check your iptables routing with the `ip r` command in a running container.
 
@@ -199,24 +193,6 @@ Once /scripts is mounted you'll need to write your custom code in the following 
 Don't forget to include the #!/bin/bash shebang and to make the scripts executable using chmod a+x
 
 
-#### Use docker env file
-Another way is to use a docker env file where you can easily store all your env variables and maintain multiple configurations for different providers.
-In the GitHub repository there is a provided DockerEnv file with all the current transmission and openvpn environment variables. You can use this to create local configurations
-by filling in the details and removing the # of the ones you want to use.
-
-Please note that if you pass in env. variables on the command line these will override the ones in the env file.
-
-See explanation of variables above.
-To use this env file, use the following to run the docker image:
-```
-$ docker run --cap-add=NET_ADMIN --device=/dev/net/tun -d \
-              -v /your/storage/path/:/data \
-              -v /etc/localtime:/etc/localtime:ro \
-              --env-file /your/docker/env/file \
-              -p 9091:9091 \
-              haugene/transmission-openvpn
-```
-
 ## Access the WebUI
 
 But what's going on? My http://my-host:9091 isn't responding?
@@ -226,7 +202,7 @@ to your request will be treated as "non-local" traffic and therefore be routed o
 
 ### How to fix this
 
-The container supports the `LOCAL_NETWORK` environment variable. For instance if your local network uses the IP range 192.168.0.0/16 you would pass `-e LOCAL_NETWORK=192.168.0.0/16`.
+The container defines a default `LOCAL_NETWORK` environment variable to `192.168.0.0/16`. This variable needs to be adapted to the range of IP addresses used by your local network.
 
 
 ## Access the RPC
@@ -244,11 +220,13 @@ For example use googles dns servers by adding --dns 8.8.8.8 --dns 8.8.4.4 as par
 
 
 #### Restart container if connection is lost
-If the VPN connection fails or the container for any other reason loses connectivity, you want it to recover from it. One way of doing this is to set environment variable `OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60` and use the --restart=always flag when starting the container. This way OpenVPN will exit if ping fails over a period of time which will stop the container and then the Docker deamon will restart it.
+If the VPN connection fails or the container for any other reason loses connectivity, you want it to recover from it. 
+By default, the environment variable `OPENVPN_OPTS` is set to `--inactive 3600 --ping 10 --ping-exit 60 --pull-filter ignore ping`. This way OpenVPN will exit if ping fails over a period of time, which will stop the container.
+One should use the --restart=always flag when starting the container, then the Docker deamon will restart it automatically and establish a new connection (eventually using another server).
 
 
 #### Reach sleep or hybernation on your host if no torrents are active
-By befault Transmission will always [scrape](https://en.wikipedia.org/wiki/Tracker_scrape) trackers, even if all torrents have completed their activities, or they have been paused manually. This will cause Transmission to be always active, therefore never allow your host server to be inactive and go to sleep/hybernation/whatever. If this is something you want, you can add the following variable when creating the container. It will turn off a hidden setting in Tranmsission which will stop the application to scrape trackers for paused torrents. Transmission will become inactive, and your host will reach the desidered state.
+By befault Transmission will always [scrape](https://en.wikipedia.org/wiki/Tracker_scrape) trackers, even if all torrents have completed their activities, or they have been paused manually. This will cause Transmission to be always active, therefore never allow your host server to be inactive and go to sleep/hybernation/whatever. If this is something you want, you can add the following variable when creating the container. It will turn off a hidden setting in Tranmsission which will stop the application to scrape trackers for paused torrents. Transmission will become inactive, and your host will reach the desired state.
 ```
 -e "TRANSMISSION_SCRAPE_PAUSED_TORRENTS_ENABLED=false"
 ```
