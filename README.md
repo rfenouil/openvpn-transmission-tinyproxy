@@ -6,8 +6,9 @@
 
 ## About this repository copy
 
-All initial work is imported from another repository: haugene/docker-transmission-openvpn (commit 46ba5e0995dfbb185abd9e083e1edec3ce6fb785)
-This new repository has been created for maintaining a working simplified arm version, to be used on my Rock64 device with [openmediavault](https://www.openmediavault.org/) (should work on other arm configurations too).
+All initial work is imported from another repository [haugene/docker-transmission-openvpn (commit 46ba5e0995dfbb185abd9e083e1edec3ce6fb785)](https://github.com/haugene/docker-transmission-openvpn).
+
+This new repository has been created for maintaining a working simplified ARM version, to be used on my Rock64 device with [openmediavault](https://www.openmediavault.org/) (should work on other arm configurations too).
 
 All openvpn configuration files bundled in initial repository are removed.
 I use [NordVPN](https://nordvpn.com/) and I plan to rely on either:
@@ -72,15 +73,15 @@ To do so, pull `rfenouil/openvpn-transmission-tinyproxy` image from dockerhub, t
 
 - Run container in privileged mode.
 - Set container to restart on failure.
-- Mount volume '/data' to an existing local folder. It will be used for storing downloads (complete/incomplete/wath) and transmission home folder.
-- Eventually mount volume '/ovpnFiles' to an existing local folder containing pre-configured *.ovpn files (if you don't want to get them downloaded from NordVPN API).
+- Mount volume '/data' to an existing local folder. It will be used for storing downloads (complete/incomplete/watch) and transmission home folder.
+- Eventually mount volume '/ovpnFiles' to an existing local folder containing pre-configured '*.ovpn' files (if you don't want to get them downloaded from NordVPN API).
 - Customize default parameters by modifying values in environment variables (see below).
 
-If user provides openVPN configuration files in a folder (mounted in '/ovpnFiles' volume), he can use `OPENVPN_CONFIGFILE_SELECT_REGEX` variable to provide a regular expression selecting a sublist of files from which connection will be made.
+If user provides openVPN configuration files in a folder (mounted in '/ovpnFiles' volume), he can use `OPENVPN_CONFIGFILE_SELECT_REGEX` as a regular expression to select a sublist of files from which connection will be made.
 
 If user provides `NORDVPN_USERNAME` and `NORDVPN_PASSWORD` environment variables, a server configuration will be downloaded from NordVPN website and configured. 
 The following variables can be set to select the 'best' configuration file from NordVPN server:
-- `NORDVPN_CONFIGNAME` is optional but can be set to an existing NordVPN configuration name (e.g. it69.nordvpn.com.tcp). In this case, no server recommendation is made and all other `NORDVPN_*` variables are ignored. The selected configuration is directly downloaded, configured (credentials added), and used to start openVPN.
+- `NORDVPN_CONFIGNAME` is optional but can be set to an existing NordVPN configuration name (e.g. 'it69.nordvpn.com.tcp'). In this case, no server recommendation is made and all other `NORDVPN_*` variables are ignored. The selected configuration is directly downloaded, configured (credentials added), and used to start openVPN.
 - `NORDVPN_COUNTRY` can be a country name (france, italy, ...) or a country code (fr, it, us, uk, ...). This value is mandatory for the server recommendation algorithm to work. If no value is provided, a default value will be used (fr, as defined in script 'NordVPN_getConfig.sh'). If an invalid (not recognized by NordVPN servers) value is specified, an error is raised (check logs).
 - `NORDVPN_GROUP` can be the name (or identifier) of a group of servers configured for specific use (as defined by NordVPN). Valid values as of March 2019: "Double VPN", "Onion Over VPN", "Ultra fast TV", "Anti DDoS", "Dedicated IP", "Standard VPN servers", "Netflix USA", "P2P", "Obfuscated Servers", "Europe", "The Americas", "Asia Pacific", "Africa, the Middle East and India". This variable is optional but helps to get a server suited for your application. If this parameter is invalid or cannot be satisfied, it will be ignored with a warning (check logs).
 - `NORDVPN_TECHNOLOGY` must be 'udp' or 'tcp'. If an invalid value is specified (or missing), it will be replaced by default value ('tcp', as defined in script 'NordVPN_getConfig.sh') with a warning.
@@ -111,7 +112,7 @@ You can override the default web UI by setting the ```TRANSMISSION_WEB_HOME``` e
 
 [Combustion UI](https://github.com/Secretmapper/combustion), [Kettu](https://github.com/endor/kettu) and [Transmission-Web-Control](https://github.com/ronggang/transmission-web-control/) come bundled with the container. You can enable either of them by setting```TRANSMISSION_WEB_UI=combustion```, ```TRANSMISSION_WEB_UI=kettu``` or ```TRANSMISSION_WEB_UI=transmission-web-control```, respectively. Note that this will override the ```TRANSMISSION_WEB_HOME``` variable if set.
 
-By default `TRANSMISSION_WEB_UI` is set to `transmission-web-control`
+By default `TRANSMISSION_WEB_UI` is set to `transmission-web-control`.
 
 | Variable | Function | Example |
 |----------|----------|-------|

@@ -15,7 +15,7 @@
 # 
 # Used by 'NordVPN_getConfig.sh'
 # NORDVPN_USERNAME & NORDVPN_PASSWORD : If set, openvpn config file is downloaded from NordVPN website and configured with credentials and default options.
-# NORDVPN_CONFIGNAME : Direct selection of an online configuration file by name (e.g. it69.nordvpn.com.tcp). All other NORDVPN_* variables ignored if set.
+# NORDVPN_CONFIGNAME : Direct selection of an online configuration file by name (e.g. 'it69.nordvpn.com.tcp'). All other NORDVPN_* variables ignored if set.
 # NORDVPN_COUNTRY    : Country name or code as defined by NordVPN online API (e.g. 'it', 'fr', 'de', ...). Required for selection of 'recommended' server.
 # NORDVPN_TECHNOLOGY : Prefered method of connection for configuration selection. UDP or TCP (default).
 # NORDVPN_GROUP      : Prefered type of server (e.g. 'P2P', 'Double VPN', ...). Optional and not guaranteed.
