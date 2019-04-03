@@ -1,8 +1,8 @@
 
 # OpenVPN, Transmission with WebUI, and VPN proxy
 
-[![Docker Automated build](https://img.shields.io/docker/automated/fenouil/openvpn-transmission-tinyproxy.svg)](https://hub.docker.com/rfenouil/openvpn-transmission-tinyproxy/)
-[![Docker Pulls](https://img.shields.io/docker/pulls/fenouil/openvpn-transmission-tinyproxy.svg)](https://hub.docker.com/rfenouil/openvpn-transmission-tinyproxy/)
+[![Docker Automated build](https://img.shields.io/docker/automated/fenouil/openvpn-transmission-tinyproxy.svg)](https://hub.docker.com/r/rfenouil/openvpn-transmission-tinyproxy/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/fenouil/openvpn-transmission-tinyproxy.svg)](https://hub.docker.com/r/rfenouil/openvpn-transmission-tinyproxy/)
 
 
 ## About this repository copy
@@ -71,9 +71,11 @@ To do so, pull `rfenouil/openvpn-transmission-tinyproxy` image from dockerhub, t
 - Set container restart policy to 'unless-stopped'
 - Enable 'Run container in privileged mode'
 - Set network mode to 'Bridge'
-- Add to port forwarding section the lines: 
---   Host IP => 0.0.0.0 | Host Port => 8888 | Exposed port => 8888/tcp
---   Host IP => 0.0.0.0 | Host Port => 9091 | Exposed port => 9091/tcp
+- Add 2 lines to port forwarding section: 
+  |Host IP|Host Port|Exposed port|
+  |-------|---------|------------|
+  |0.0.0.0|    8888 |   8888/tcp |
+  |0.0.0.0|    9091 |   9091/tcp |
 - Customize default parameters by modifying values in environment variables (see below)
 - Mount volume '/data' to an existing local folder: it will be used for storing downloads (complete/incomplete/watch) and transmission home folder
 - Eventually mount volume '/ovpnFiles' to an existing local folder containing pre-configured '*.ovpn' files (if you don't want to get them downloaded from NordVPN API).
