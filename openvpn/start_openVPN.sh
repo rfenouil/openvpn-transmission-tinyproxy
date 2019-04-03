@@ -94,7 +94,7 @@ else
     chmod 600 /config/openvpn-credentials.txt
      
     echo "Getting recommended server from NordVPN website..."
-    export OPENVPN_CONFIG="$(NordVPN_getConfig.sh).ovpn"
+    export OPENVPN_CONFIG="$(/importedScripts/openvpn/NordVPN_getConfig.sh).ovpn"
     echo "Downloaded and configured: '${OPENVPN_CONFIG}'"
     
 fi
