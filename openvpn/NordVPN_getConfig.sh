@@ -145,7 +145,7 @@ update_hostname() {
     log "Updating configs for docker-transmission-openvpn"
     sed -i 's=auth-user-pass=auth-user-pass /config/openvpn-credentials.txt=g' *.ovpn
     # Replace default ping values
-    sed -i 's/ping .*/inactive 3600 ping 10/g' *.ovpn
+    sed -i 's/ping .*/inactive 3600\nping 10/g' *.ovpn
     sed -i 's/ping-restart .*/ping-exit 60/g' *.ovpn
     sed -i 's/ping-timer-rem.*//g' *.ovpn
 }
