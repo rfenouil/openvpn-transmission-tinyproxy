@@ -12,9 +12,9 @@
 find_proxy_conf()
 {
     # Created during tinyproxy installation, location depends on platform
-    if [[ -f /etc/tinyproxy.conf ]]; then
+    if [[ -f "/etc/tinyproxy.conf" ]]; then
       PROXY_CONF='/etc/tinyproxy.conf'
-    elif [[ -f /etc/tinyproxy/tinyproxy.conf ]]; then
+    elif [[ -f "/etc/tinyproxy/tinyproxy.conf" ]]; then
       PROXY_CONF='/etc/tinyproxy/tinyproxy.conf'
     else
      echo "ERROR: Could not find tinyproxy config file. Exiting..."

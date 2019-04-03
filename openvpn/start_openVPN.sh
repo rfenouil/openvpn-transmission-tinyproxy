@@ -43,8 +43,7 @@ fi
 
 
 # If openvpn-pre-start.sh exists, run it
-if [ -x /scripts/openvpn-pre-start.sh ]
-then
+if [[ -x "/scripts/openvpn-pre-start.sh" ]]; then
    echo "Executing /scripts/openvpn-pre-start.sh"
    /scripts/openvpn-pre-start.sh "$@"
    echo "/scripts/openvpn-pre-start.sh returned $?"
@@ -53,16 +52,16 @@ fi
 
 
 # Folder where openVPN configuration files are stored (if any)
-OPENVPN_CONFIGFILES_DIR="/ovpnFiles" # Volume mounted by DockerFile
+OPENVPN_CONFIGFILES_DIR="/ovpnFiles" # Volume mounted by Docker
 
 # If no NordVPN credentials provided, search for existing preconfigured ovpn files in mounted volume
-if [[ "${NORDVPN_USERNAME}" == "**None**" ]] || [[ "${NORDVPN_PASSWORD}" == "**None**" ]] ; then
+if [[ "${NORDVPN_USERNAME}" == "**None**" ]] || [[ "${NORDVPN_PASSWORD}" == "**None**" ]]; then
     
     echo "Searching OpenVPN configuration files in mounted volume..."
     OPENVPN_CONFIGFILES=($(find ${OPENVPN_CONFIGFILES_DIR} -iname '*.ovpn')) # Get available files as bash array
     
     # Check number of configuration files found
-    if [[ ${#OPENVPN_CONFIGFILES[*]} -eq 0 ]] then
+    if [[ ${#OPENVPN_CONFIGFILES[*]} -eq 0 ]]; then
         echo "No OpenVPN configuration file found in mounted volume. Please provide configuration files (or credentials to setup a config from NordVPN server). Exiting."
         exit 1
     fi
@@ -70,20 +69,20 @@ if [[ "${NORDVPN_USERNAME}" == "**None**" ]] || [[ "${NORDVPN_PASSWORD}" == "**N
     echo "Found ${#OPENVPN_CONFIGFILES[*]} files."
     
     # Filter files if 'OPENVPN_CONFIG_SELECT' is not empty
-    if [[ -n ${OPENVPN_CONFIGFILE_SELECT_REGEX-} ]] then
+    if [[ -n "${OPENVPN_CONFIGFILE_SELECT_REGEX-}" ]]; then
         echo "Removing config filenames not matching 'OPENVPN_CONFIGFILE_SELECT_REGEX' regex..."
         for index in "${!OPENVPN_CONFIGFILES[@]}" ; do [[ ${OPENVPN_CONFIGFILES[$index]} =~ $OPENVPN_CONFIGFILE_SELECT_REGEX ]] || unset -v 'OPENVPN_CONFIGFILES[$index]' ; done
     fi
     
     # Check number of remaining files after filtering 
-    if [[ ${#OPENVPN_CONFIGFILES[*]} -eq 0 ]] then
+    if [[ ${#OPENVPN_CONFIGFILES[*]} -eq 0 ]]; then
         echo "No OpenVPN configuration file remaining after selection. Please check that regular expression matches some filenames in mounted volume. Exiting."
         exit 1
     fi
     
     # Random selection
     echo "Selecting random configuration from ${#OPENVPN_CONFIGFILES[@]} available files..."
-    OPENVPN_CONFIG=${OPENVPN_CONFIGFILES[$RANDOM % ${#OPENVPN_CONFIGFILES[@]} ]}
+    OPENVPN_CONFIG=${OPENVPN_CONFIGFILES[$RANDOM % ${#OPENVPN_CONFIGFILES[@]}]}
     echo "Selected: '${OPENVPN_CONFIG}'"
     
 else
@@ -119,11 +118,11 @@ fi
 
 
 
-# Persist transmission settings for use by transmission-daemon
+# Create and save a bash script from template (using dockerize) which exports environment variables of interest. To be used in scripts started by openVPN (--up and --down) because it does not copy parent environment for their execution.
 dockerize -template /importedScripts/transmission/dockerize_environment_variables_for_export.tmpl:/importedScripts/transmission/dockerize_environment_variables_for_export.sh
-TRANSMISSION_CONTROL_OPTS="--script-security 2 --up-delay --up /importedScripts/openvpn/tunnelUp.sh --down /importedScripts/openvpn/tunnelDown.sh"
 
 # Start openvpn with --up and --down scripts, eventual options added from environment variables, and specify selected config file
+TRANSMISSION_CONTROL_OPTS="--script-security 2 --up-delay --up /importedScripts/openvpn/tunnelUp.sh --down /importedScripts/openvpn/tunnelDown.sh"
 exec openvpn ${TRANSMISSION_CONTROL_OPTS} ${OPENVPN_OPTS} --config "${OPENVPN_CONFIG}"
 
 

@@ -21,8 +21,7 @@ fi
 
 
 # If transmission-pre-start.sh exists, run it
-if [[ -x /scripts/transmission-pre-start.sh ]]
-then
+if [[ -x "/scripts/transmission-pre-start.sh" ]]; then
    echo "Executing /scripts/transmission-pre-start.sh"
    /scripts/transmission-pre-start.sh "$@"
    echo "/scripts/transmission-pre-start.sh returned $?"
@@ -86,8 +85,7 @@ exec su --preserve-environment ${RUN_AS} -s /bin/bash -c "/usr/bin/transmission-
 
 
 # If transmission-post-start.sh exists, run it
-if [[ -x /scripts/transmission-post-start.sh ]]
-then
+if [[ -x "/scripts/transmission-post-start.sh" ]]; then
    echo "Executing /scripts/transmission-post-start.sh"
    /scripts/transmission-post-start.sh "$@"
    echo "/scripts/transmission-post-start.sh returned $?"
