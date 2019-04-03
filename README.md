@@ -1,5 +1,5 @@
 
-# OpenVPN, Transmission with WebUI, and VPN proxy
+# OpenVPN, Transmission, and VPN proxy for ARM
 
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/rfenouil/openvpn-transmission-tinyproxy.svg)](https://hub.docker.com/r/rfenouil/openvpn-transmission-tinyproxy/)
@@ -76,7 +76,7 @@ $ docker run --cap-add=NET_ADMIN --device=/dev/net/tun -d \
 
 ### OMV docker plugin
 
-However, since it has been tailored for small __ARM__ devices using openmediavault (OMV), a direct importation (docker pull) using docker graphic interface is the simplest and recommended way to use it.
+However, since it has been tailored for small __ARM__ devices using __openmediavault (OMV)__, a direct importation (docker pull) using docker graphic interface is the simplest and recommended way to use it.
 
 To do so, pull `rfenouil/openvpn-transmission-tinyproxy` image from dockerhub, then create a container and modify the following parameters before starting it:
 
@@ -92,7 +92,7 @@ To do so, pull `rfenouil/openvpn-transmission-tinyproxy` image from dockerhub, t
   
 - Customize default parameters by modifying values in environment variables (see below)
 - Mount volume '/data' to an existing local folder: it will be used for storing downloads (complete/incomplete/watch) and transmission home folder
-- Eventually mount volume '/ovpnFiles' to an existing local folder containing pre-configured '*.ovpn' files (if you don't want to get them downloaded from NordVPN API).
+- Eventually mount volume '/ovpnFiles' to an existing local folder containing pre-configured '*.ovpn' files (if you don't want to get them downloaded from NordVPN API)
 
 Following images show an example of container configuration with OMV.
 In this case, the user provides NordVPN username and password to get a configuration file downloaded from NordVPN servers and configured automatically.
