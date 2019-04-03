@@ -30,6 +30,10 @@
 
 echo "OpenVPN start script..."
 
+# If the script is called from elsewhere come back to script directory 
+# so we can access other local scripts and downloaded configs directly
+cd "${0%/*}"
+
 
 
 # If create_tun_device is set, create /dev/net/tun
@@ -94,7 +98,7 @@ else
     chmod 600 /config/openvpn-credentials.txt
      
     echo "Getting recommended server from NordVPN website..."
-    export OPENVPN_CONFIG="$(/importedScripts/openvpn/NordVPN_getConfig.sh).ovpn"
+    export OPENVPN_CONFIG="$(NordVPN_getConfig.sh).ovpn"
     echo "Downloaded and configured: '${OPENVPN_CONFIG}'"
     
 fi
@@ -122,7 +126,7 @@ fi
 dockerize -template /importedScripts/transmission/dockerize_environment_variables_for_export.tmpl:/importedScripts/transmission/dockerize_environment_variables_for_export.sh
 
 # Start openvpn with --up and --down scripts, eventual options added from environment variables, and specify selected config file
-TRANSMISSION_CONTROL_OPTS="--script-security 2 --up-delay --up /importedScripts/openvpn/tunnelUp.sh --down /importedScripts/openvpn/tunnelDown.sh"
+TRANSMISSION_CONTROL_OPTS="--script-security 2 --up-delay --up tunnelUp.sh --down tunnelDown.sh"
 exec openvpn ${TRANSMISSION_CONTROL_OPTS} ${OPENVPN_OPTS} --config "${OPENVPN_CONFIG}"
 
 
