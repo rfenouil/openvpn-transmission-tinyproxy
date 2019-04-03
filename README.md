@@ -43,6 +43,17 @@ A random configuration will be chosen from available files in mounted volume, un
 Alternatively, the user can provide his NordVPN username and password to get a configuration file automatically downloaded and configured from NordVPN website/API.
 In this case, additional variables can be used to select the best available server based on various parameters (see below). 
 
+### Missing features
+
+While most scripts were modified/rewritten as compared to original repository, some features were simply removed to keep container as simple as possible:
+- Bundled provider-specific configuration files and scripts (except download script for NordVPN with many modifications)
+- Firewall (UFW)
+- Permission configuration options (GLOBAL_APPLY_PERMISSIONS) which is always true here
+- RSS plugin
+- Docker env file
+
+The option DROP_DEFAULT_ROUTE has not been removed but is now set to TRUE by default
+
 
 ## Run container 
 
