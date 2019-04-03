@@ -94,6 +94,14 @@ To do so, pull `rfenouil/openvpn-transmission-tinyproxy` image from dockerhub, t
 - Mount volume '/data' to an existing local folder: it will be used for storing downloads (complete/incomplete/watch) and transmission home folder
 - Eventually mount volume '/ovpnFiles' to an existing local folder containing pre-configured '*.ovpn' files (if you don't want to get them downloaded from NordVPN API).
 
+Following images show an example of container configuration with OMV.
+In this case, the user provides NordVPN username and password to get a configuration file downloaded from NordVPN servers and configured automatically.
+He relies on the online recommendation algorithm to select the best VPN server fitting to requested country, technology, and group/type.
+ 
+![OMV configuration example image 1](documentation/OMV_configure_Image1.png)
+![OMV configuration example image 2](documentation/OMV_configure_Image2.png)
+![OMV configuration example image 3](documentation/OMV_configure_Image3.png)
+
 
 If user provides openVPN configuration files in a folder (mounted in '/ovpnFiles' volume), he can use `OPENVPN_CONFIGFILE_SELECT_REGEX` as a regular expression to select a sublist of files from which connection will be made.
 
