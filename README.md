@@ -1,16 +1,15 @@
-# !!! Most refactoring done but not tested yet (NOT FUNCTIONAL) !!!
 
 # OpenVPN, Transmission with WebUI, and VPN proxy
 
-[![Docker Automated build](https://img.shields.io/docker/automated/fenouil/openvpn-transmission-tinyproxy.svg)](https://hub.docker.com/r/fenouil/openvpn-transmission-tinyproxy/)
-[![Docker Pulls](https://img.shields.io/docker/pulls/fenouil/openvpn-transmission-tinyproxy.svg)](https://hub.docker.com/r/fenouil/openvpn-transmission-tinyproxy/)
+[![Docker Automated build](https://img.shields.io/docker/automated/fenouil/openvpn-transmission-tinyproxy.svg)](https://hub.docker.com/rfenouil/openvpn-transmission-tinyproxy/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/fenouil/openvpn-transmission-tinyproxy.svg)](https://hub.docker.com/rfenouil/openvpn-transmission-tinyproxy/)
 
 
 ## About this repository copy
 
 All initial work is imported from another repository [haugene/docker-transmission-openvpn](https://github.com/haugene/docker-transmission-openvpn) (commit 46ba5e0995dfbb185abd9e083e1edec3ce6fb785).
 
-This new repository has been created for maintaining a working simplified ARM version, to be used on my Rock64 device with [openmediavault](https://www.openmediavault.org/) (should work on other arm configurations too).
+This new repository has been created for maintaining a working simplified __ARM version only__, to be used on my Rock64 device with [openmediavault](https://www.openmediavault.org/) (should work on other arm configurations too).
 
 All openvpn configuration files bundled in initial repository are removed.
 I use [NordVPN](https://nordvpn.com/) and I plan to rely on either:
@@ -52,16 +51,12 @@ By default, the container defines the script 'openvpn/start_openVPN.sh' as entry
 
 ### Command line
 
-The container could be started using this command (adding eventual modifications of default environment variables using `-e VAR=value`):
+The container could be started using this command (eventually modifying default environment variables using `-e VAR=value`):
 
 ```
 $ docker run --cap-add=NET_ADMIN --device=/dev/net/tun -d \
               -v /your/storage/path/:/data \
               -v /your/ovpnFiles/path:/ovpnFiles \
-              -v /etc/localtime:/etc/localtime:ro \
-              -e LOCAL_NETWORK=192.168.0.0/16 \
-              --log-driver json-file \
-              --log-opt max-size=10m \
               -p 9091:9091 \
               -p 8888:8888 \
               rfenouil/openvpn-transmission-tinyproxy
@@ -69,15 +64,20 @@ $ docker run --cap-add=NET_ADMIN --device=/dev/net/tun -d \
 
 ### OMV docker plugin
 
-However, since it has been tailored for small ARM devices using openmediavault (OMV), a direct importation (docker pull) using docker graphic interface is the simplest and recommended way to use it.
+However, since it has been tailored for small __ARM__ devices using openmediavault (OMV), a direct importation (docker pull) using docker graphic interface is the simplest and recommended way to use it.
 
 To do so, pull `rfenouil/openvpn-transmission-tinyproxy` image from dockerhub, then create a container and modify the following parameters before starting it:
 
-- Run container in privileged mode.
-- Set container to restart on failure.
-- Mount volume '/data' to an existing local folder. It will be used for storing downloads (complete/incomplete/watch) and transmission home folder.
+- Set container restart policy to 'unless-stopped'
+- Enable 'Run container in privileged mode'
+- Set network mode to 'Bridge'
+- Add to port forwarding section the lines: 
+--   Host IP => 0.0.0.0 | Host Port => 8888 | Exposed port => 8888/tcp
+--   Host IP => 0.0.0.0 | Host Port => 9091 | Exposed port => 9091/tcp
+- Customize default parameters by modifying values in environment variables (see below)
+- Mount volume '/data' to an existing local folder: it will be used for storing downloads (complete/incomplete/watch) and transmission home folder
 - Eventually mount volume '/ovpnFiles' to an existing local folder containing pre-configured '*.ovpn' files (if you don't want to get them downloaded from NordVPN API).
-- Customize default parameters by modifying values in environment variables (see below).
+
 
 If user provides openVPN configuration files in a folder (mounted in '/ovpnFiles' volume), he can use `OPENVPN_CONFIGFILE_SELECT_REGEX` as a regular expression to select a sublist of files from which connection will be made.
 
@@ -105,7 +105,6 @@ If user wants to download and use NordVPN recommended server, he must provide en
 | Variable | Function | Example |
 |----------|----------|-------|
 |`OPENVPN_OPTS` | Will be passed to OpenVPN on startup | See [OpenVPN doc](https://openvpn.net/index.php/open-source/documentation/manuals/65-openvpn-20x-manpage.html) |
-|`LOCAL_NETWORK` | Sets the local network that should have access. Accepts comma separated list. | `LOCAL_NETWORK=192.168.0.0/16`|
 |`CREATE_TUN_DEVICE` | Creates /dev/net/tun device inside the container, mitigates the need mount the device from the host | `CREATE_TUN_DEVICE=true`|
 
 
@@ -194,18 +193,6 @@ Once /scripts is mounted you'll need to write your custom code in the following 
 |/scripts/transmission-post-stop.sh | This shell script will be executed after transmission stop |
 
 Don't forget to include the #!/bin/bash shebang and to make the scripts executable using chmod a+x
-
-
-## Access the WebUI
-
-But what's going on? My http://my-host:9091 isn't responding?
-This is because the VPN is active, and since docker is running in a different ip range than your client the response
-to your request will be treated as "non-local" traffic and therefore be routed out through the VPN interface.
-
-
-### How to fix this
-
-The container defines a default `LOCAL_NETWORK` environment variable to `192.168.0.0/16`. This variable needs to be adapted to the range of IP addresses used by your local network.
 
 
 ## Access the RPC
