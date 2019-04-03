@@ -22,6 +22,7 @@
 # 
 # Used by scripts starting transmission and tinyproxy (see tunnelUp.sh)
 # PUID & PGID        : alter container local user uid and gid to fit system users file permissions.
+# LOCAL_NETWORK      : specify a route to access docker from local network.
 # DROP_DEFAULT_ROUTE : forbids any use of regular connection instead of VPN tunnel in container.
 # TRANSMISSION_*     : generate transmission configuration file (json) and start daemon.
 # WEBPROXY_*         : customize existing tinyproxy configuration file and start daemon.
@@ -100,6 +101,23 @@ else
     export OPENVPN_CONFIG="$(./NordVPN_getConfig.sh).ovpn"
     echo "Downloaded and configured: '${OPENVPN_CONFIG}'"
     
+fi
+
+
+
+# Grab network config info (INT & GW)
+if [[ -n "${LOCAL_NETWORK-}" ]]; then
+  eval $(/sbin/ip r l m 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
+fi
+
+# Add route to local network
+if [[ -n "${LOCAL_NETWORK-}" ]]; then
+  if [[ -n "${GW-}" ]] && [[ -n "${INT-}" ]]; then
+    for localNet in ${LOCAL_NETWORK//,/ }; do
+      echo "adding route to local network ${localNet} via ${GW} dev ${INT}"
+      /sbin/ip r a "${localNet}" via "${GW}" dev "${INT}"
+    done
+  fi
 fi
 
 

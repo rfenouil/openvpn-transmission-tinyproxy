@@ -73,6 +73,7 @@ ENV NORDVPN_USERNAME=**None** \
     PUID=\
     PGID=\
     \
+    LOCAL_NETWORK=192.168.0.0/16 \
     DROP_DEFAULT_ROUTE=true \
     \
     TRANSMISSION_HOME=/data/transmission-home \

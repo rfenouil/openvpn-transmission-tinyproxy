@@ -57,6 +57,7 @@ The container could be started using this command (eventually modifying default 
 $ docker run --cap-add=NET_ADMIN --device=/dev/net/tun -d \
               -v /your/storage/path/:/data \
               -v /your/ovpnFiles/path:/ovpnFiles \
+              -e LOCAL_NETWORK=192.168.0.0/16 \
               -p 9091:9091 \
               -p 8888:8888 \
               rfenouil/openvpn-transmission-tinyproxy
@@ -109,6 +110,7 @@ If user wants to download and use NordVPN recommended server, he must provide en
 | Variable | Function | Example |
 |----------|----------|-------|
 |`OPENVPN_OPTS` | Will be passed to OpenVPN on startup | See [OpenVPN doc](https://openvpn.net/index.php/open-source/documentation/manuals/65-openvpn-20x-manpage.html) |
+|`LOCAL_NETWORK` | Sets the local network that should have access. Accepts comma separated list. | `LOCAL_NETWORK=192.168.0.0/16`|
 |`CREATE_TUN_DEVICE` | Creates /dev/net/tun device inside the container, mitigates the need mount the device from the host | `CREATE_TUN_DEVICE=true`|
 
 
@@ -197,6 +199,18 @@ Once /scripts is mounted you'll need to write your custom code in the following 
 |/scripts/transmission-post-stop.sh | This shell script will be executed after transmission stop |
 
 Don't forget to include the #!/bin/bash shebang and to make the scripts executable using chmod a+x
+
+
+## Access the WebUI
+
+But what's going on? My http://my-host:9091 isn't responding?
+This is because the VPN is active, and since docker is running in a different ip range than your client the response
+to your request will be treated as "non-local" traffic and therefore be routed out through the VPN interface.
+
+
+### How to fix this
+
+The container defines a default `LOCAL_NETWORK` environment variable to `192.168.0.0/16`. This variable needs to be adapted to the range of IP addresses used by your local network.
 
 
 ## Access the RPC
