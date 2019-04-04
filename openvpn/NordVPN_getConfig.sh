@@ -34,7 +34,7 @@ script_init() {
 
 # NORDVPN_COUNTRY="fr" (fr, it, de, us, uk, ...)
 # Available values: curl -s "https://api.nordvpn.com/v1/servers/countries" | jq --raw-output '.[] | [.code, .name] | @tsv'
-country_filter() { 
+set_filterCountry() { 
     local nordvpn_api=$1
     if [[ -n $NORDVPN_COUNTRY ]]; then
         # Retrieve ID from name or code (case insensitive) if it exists
@@ -44,7 +44,8 @@ country_filter() {
                           .id" | head -n 1`
         if [[ -n ${country_id} ]]; then
             log "Creating filter for country: ${NORDVPN_COUNTRY} (id=${country_id})"
-            echo "filters\[country_id\]=${country_id}&"
+            # Return filter by setting value in pre-declared global variable  
+            filterCountry="filters\[country_id\]=${country_id}&"
         else
             fatal_error  "Country '$NORDVPN_COUNTRY' not found but a valid value is required for recommendation algorithm. Exiting."
         fi
@@ -53,7 +54,7 @@ country_filter() {
 
 # NORDVPN_GROUP="P2P" ("Double VPN", "Onion Over VPN", "Ultra fast TV", "Anti DDoS", "Dedicated IP", "Standard VPN servers", "Netflix USA", "P2P", "Obfuscated Servers", "Europe", "The Americas", "Asia Pacific", "Africa, the Middle East and India")
 # Available values: curl -s "https://api.nordvpn.com/v1/servers/groups" | jq --raw-output '.[] | [.identifier, .title] | @tsv'
-group_filter() {
+set_filterGroup() {
     local nordvpn_api=$1
     if [[ -n $NORDVPN_GROUP ]]; then
         # Retrieve identifier (not id) from title or identifier (case insensitive) if it exists
@@ -63,7 +64,8 @@ group_filter() {
                                 .identifier" | head -n 1`
         if [[ -n ${group_identifier} ]]; then
             log "Creating filter for group: ${NORDVPN_GROUP} (identifier=${group_identifier})"
-            echo "filters\[servers_groups\]\[identifier\]=${group_identifier}&"
+            # Return filter by setting value in pre-declared global variable  
+            filterGroup="filters\[servers_groups\]\[identifier\]=${group_identifier}&"
         else
             log "Group '$NORDVPN_GROUP' not found, filter ignored..."
         fi
@@ -73,10 +75,11 @@ group_filter() {
 # NORDVPN_TECHNOLOGY=tcp (udp, tcp)
 # Available values: curl -s "https://api.nordvpn.com/v1/technologies" | jq --raw-output '.[] | [.identifier, .name ] | @tsv' | grep openvpn
 # In current script only 'udp' and 'tcp' allowed, could be modified using same template as for 'country' and 'group'.
-technology_filter() {
+set_filterTechnology() {
     local technology_identifier="openvpn_${NORDVPN_TECHNOLOGY,,}"
     log "Creating filter for technology: ${NORDVPN_TECHNOLOGY,,} (identifier=${technology_identifier})"
-    echo "filters\[servers_technologies\]\[identifier\]=${technology_identifier}&"
+    # Return filter by setting value in pre-declared global variable      
+    filterTechnology="filters\[servers_technologies\]\[identifier\]=${technology_identifier}&"
 }
 
 
@@ -90,10 +93,10 @@ select_hostname() {
 
     log "Selecting best server using NordVPN API..."
     
-    # Generate URL strings for filters  
-    filterCountry="$(country_filter ${nordvpn_api})"        # filterCountry is required for recommendation algorithm to work (exits with error if country does not exist in DB)
-    filterGroup="$(group_filter ${nordvpn_api})"            # filterGroup get a value only if corresponding environment variable is set (NORDVPN_GROUP) and value exists in DB
-    filterTechnology="$(technology_filter ${nordvpn_api})"  # filterTechnology values restricted to openvpn_tcp and openvpn_udp
+    # Generate URL strings for filters (set corrresponding global variables)
+    set_filterCountry    ${nordvpn_api}  # filterCountry is required for recommendation algorithm to work (exits with error if country does not exist in DB)
+    set_filterGroup      ${nordvpn_api}  # filterGroup get a value only if corresponding environment variable is set (NORDVPN_GROUP) and value exists in DB
+    set_filterTechnology ${nordvpn_api}  # filterTechnology values restricted to openvpn_tcp and openvpn_udp
     
     # Get the recommended server hostname from API using all filters
     # IMPORTANT NOTE: if no country filter specified, the server seems to ignore all other filters and returns a default recommended one based on IP location only (i.e. NOT WHAT WE WANT !)
@@ -115,8 +118,9 @@ select_hostname() {
         fatal_error "Attempt to find a recommended server failed... Exiting."
     fi
     
+    # Set global variable
     log "Recommended server : ${hostname}"
-    echo ${hostname}
+    selectedConfigName=${hostname}
 }
 
 
@@ -179,20 +183,28 @@ log "Removing previously downloaded configs"
 find . ! -iname '*.sh' -type f -delete
 
 
+# Global variable that will be set and used in following blocks (bash functions cannot return strings
+# and use of '$()' is undesirable because it doesn't allow to abort script using 'exit' in functions)
+selectedConfigName=""
+filterCountry=""
+filterGroup=""
+filterTechnology=""
+
 if [[ -n $NORDVPN_CONFIGNAME ]]; then
-    # A config name is specified directly (e.g. it69.nordvpn.com.tcp)
-    selected=${NORDVPN_CONFIGNAME,,}
+    # A config name is specified directly, including technology suffix (e.g. it69.nordvpn.com.tcp)
+    selectedConfigName=${NORDVPN_CONFIGNAME,,}
 else
     # Try to select best server using eventual values in "NORDVPN_COUNTRY", "NORDVPN_GROUP", and "NORDVPN_TECHNOLOGY"
-    selected="$(select_hostname).${NORDVPN_TECHNOLOGY,,}"
+    select_hostname # Modifies global variable 'selectedConfigName' 
+    selectedConfigName="${selectedConfigName}.${NORDVPN_TECHNOLOGY,,}" # append technology suffix
 fi
 
 
-download_hostname ${selected}
+download_hostname ${selectedConfigName}
 update_hostname
 
 
 # Return value to calling script
-echo "${selected}"
+echo "${selectedConfigName}"
 
 
