@@ -48,7 +48,7 @@ set_port()
 
 if [[ "${WEBPROXY_ENABLED}" = "true" ]]; then
 
-  echo "Configuring and starting Tinyproxy !"
+  echo "\nConfiguring and starting Tinyproxy !"
 
   find_proxy_conf
   echo "Found config file $PROXY_CONF, updating settings."

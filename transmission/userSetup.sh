@@ -35,15 +35,10 @@ if [[ -n "$PUID" ]] && [[ ! "$(id -u root)" -eq "$PUID" ]]; then
 
 fi
 
-echo "
--------------------------------------
-Transmission will run as
--------------------------------------
-User name:   ${RUN_AS}
-User uid:    $(id -u ${RUN_AS})
-User gid:    $(id -g ${RUN_AS})
--------------------------------------
-"
+echo "Transmission will run as:
+User name: ${RUN_AS}
+User uid:  $(id -u ${RUN_AS})
+User gid:  $(id -g ${RUN_AS})"
 
 export PUID
 export PGID

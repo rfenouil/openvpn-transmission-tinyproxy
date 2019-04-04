@@ -126,8 +126,8 @@ fi
 dockerize -template /importedScripts/transmission/dockerize_environment_variables_for_export.tmpl:/importedScripts/transmission/dockerize_environment_variables_for_export.sh
 
 # Start openvpn with --up and --down scripts, eventual options added from environment variables, and specify selected config file
-TRANSMISSION_CONTROL_OPTS="--script-security 2 --up-delay --up tunnelUp.sh --down tunnelDown.sh"
-openvpn ${TRANSMISSION_CONTROL_OPTS} ${OPENVPN_OPTS} --config "${OPENVPN_CONFIG}"
+TRANSMISSION_CONTROL_OPTS="--script-security 2 --up-delay --down-pre --up tunnelUp.sh --down tunnelDown.sh"
+exec openvpn ${TRANSMISSION_CONTROL_OPTS} ${OPENVPN_OPTS} --config "${OPENVPN_CONFIG}"
 
 
 

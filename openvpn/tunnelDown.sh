@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "=> tunnelDown script execution"
+echo "=> tunnelDown script started"
 
 /importedScripts/transmission/stop_transmission.sh
 /importedScripts/tinyproxy/stop_tinyproxy.sh
