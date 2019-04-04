@@ -114,7 +114,7 @@ The following (case insensitive) variables can be set to select the 'best' confi
 
 If the selected server goes down, after the value of ping-timeout the container will be restarted and a new server will be chosen, note that the faulty server can be chosen again. If this should occur, the container will be restarted again until a working server is selected.
 
-To make sure this work in all cases, the options `--inactive 3600 --ping 10 --ping-exit 60 --pull-filter ignore ping` are added by default to `OPENVPN_OPTS` variable.
+To make sure this work in all cases, the options `--ping 10 --ping-exit 60` are added by default to `OPENVPN_OPTS` variable.
 
 A general summary of environment variables is available in header comments of script 'openvpn/start_openVPN.sh', and additional details below.
 
@@ -248,7 +248,7 @@ For example use googles dns servers by adding --dns 8.8.8.8 --dns 8.8.4.4 as par
 
 #### Restart container if connection is lost
 If the VPN connection fails or the container for any other reason loses connectivity, you want it to recover from it. 
-By default, the environment variable `OPENVPN_OPTS` is set to `--inactive 3600 --ping 10 --ping-exit 60 --pull-filter ignore ping`. This way OpenVPN will exit if ping fails over a period of time, which will stop the container.
+By default, the environment variable `OPENVPN_OPTS` is set to `--ping 10 --ping-exit 60`. This way OpenVPN will exit if ping fails over a period of time, which will stop the container.
 One should use the --restart=always flag when starting the container, then the Docker deamon will restart it automatically and establish a new connection (eventually using another server).
 
 

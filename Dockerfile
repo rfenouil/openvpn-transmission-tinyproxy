@@ -68,7 +68,7 @@ ENV NORDVPN_USERNAME=**None** \
     NORDVPN_GROUP= \
     \
     OPENVPN_CONFIGFILE_SELECT_REGEX= \
-    OPENVPN_OPTS="--inactive 3600 --ping 10 --ping-exit 60 --pull-filter ignore ping" \
+    OPENVPN_OPTS="--ping 10 --ping-exit 60" \
     \
     PUID=\
     PGID=\
