@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Starting tinyproxy !
 # Modifies tinyproxy.conf file (created during tinyproxy installation in docker setup) with appropriate values before starting service
 
 # This script is called by openVPN when tunnel gets connected (tunnelUp.sh), but environment variables defined in parent shell are not copied.
@@ -49,7 +48,7 @@ set_port()
 
 if [[ "${WEBPROXY_ENABLED}" = "true" ]]; then
 
-  echo "STARTING TINYPROXY"
+  echo "Configuring and starting Tinyproxy !"
 
   find_proxy_conf
   echo "Found config file $PROXY_CONF, updating settings."

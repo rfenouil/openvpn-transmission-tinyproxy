@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Starting transmission !
+echo "Configuring and starting Transmission !"
 # Create json configuration file for transmission from relevant environment variables and start transmission daemon.
 
 # This script is called by openVPN when tunnel gets connected (tunnelUp.sh), but environment variables defined in parent shell are not copied.
@@ -10,7 +10,6 @@
 
 
 # OpenVPN defines tun/tap device name as parameter 1, and local IP as parameter 4
-echo "Up script executed with $*"
 if [[ "$4" = "" ]]; then
    echo "ERROR, unable to obtain tunnel address"
    echo "killing $PPID"
@@ -73,13 +72,12 @@ fi
 
 
 if [[ "true" = "$DROP_DEFAULT_ROUTE" ]]; then
-  echo "DROPPING DEFAULT ROUTE"
+  echo "Dropping default route"
   ip r del default || exit 1
 fi
 
 
 
-echo "STARTING TRANSMISSION"
 exec su --preserve-environment ${RUN_AS} -s /bin/bash -c "/usr/bin/transmission-daemon -g ${TRANSMISSION_HOME} --logfile ${TRANSMISSION_HOME}/transmission.log" &
 
 

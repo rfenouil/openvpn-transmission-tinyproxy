@@ -30,7 +30,7 @@ where Transmission is running only when OpenVPN has an active tunnel.
 It also bundles an installation of Tinyproxy to proxy web traffic over your VPN.
 
 
-## Main difference with original repository
+## Main differences with original repository
  
 ### Supported providers
 
@@ -57,7 +57,7 @@ The option DROP_DEFAULT_ROUTE has not been removed but is now set to TRUE by def
 
 ## Run container 
 
-The container is available from the Docker registry and this is the simplest way to get it.
+The container is available from Dockerhub and this is the simplest way to get it.
 By default, the container defines the script 'openvpn/start_openVPN.sh' as entry-point (first thing executed on docker start).
 
 ### Command line
@@ -94,9 +94,9 @@ To do so, pull `rfenouil/openvpn-transmission-tinyproxy` image from dockerhub, t
 - Mount volume '/data' to an existing local folder: it will be used for storing downloads (complete/incomplete/watch) and transmission home folder
 - Eventually mount volume '/ovpnFiles' to an existing local folder containing pre-configured '*.ovpn' files (if you don't want to get them downloaded from NordVPN API)
 
-Following images show an example of container configuration with OMV.
+Following pictures show an example of container configuration with OMV.
 In this case, the user provides NordVPN username and password to get a configuration file downloaded from NordVPN servers and configured automatically.
-He relies on the online recommendation algorithm to select the best VPN server fitting to requested country, technology, and group/type.
+He relies on the online recommendation algorithm to select the best VPN server fitting requested country, technology, and group/type.
  
 ![OMV configuration example image 1](documentation/OMV_configure_Image1.png)
 ![OMV configuration example image 2](documentation/OMV_configure_Image2.png)
@@ -106,7 +106,7 @@ He relies on the online recommendation algorithm to select the best VPN server f
 If user provides openVPN configuration files in a folder (mounted in '/ovpnFiles' volume), he can use `OPENVPN_CONFIGFILE_SELECT_REGEX` as a regular expression to select a sublist of files from which connection will be made.
 
 If user provides `NORDVPN_USERNAME` and `NORDVPN_PASSWORD` environment variables, a server configuration will be downloaded from NordVPN website and configured. 
-The following variables can be set to select the 'best' configuration file from NordVPN server:
+The following (case insensitive) variables can be set to select the 'best' configuration file from NordVPN server:
 - `NORDVPN_CONFIGNAME` is optional but can be set to an existing NordVPN configuration name (e.g. 'it69.nordvpn.com.tcp'). In this case, no server recommendation is made and all other `NORDVPN_*` variables are ignored. The selected configuration is directly downloaded, configured (credentials added), and used to start openVPN.
 - `NORDVPN_COUNTRY` can be a country name (france, italy, ...) or a country code (fr, it, us, uk, ...). This value is mandatory for the server recommendation algorithm to work. If no value is provided, a default value will be used (fr, as defined in script 'NordVPN_getConfig.sh'). If an invalid (not recognized by NordVPN servers) value is specified, an error is raised (check logs).
 - `NORDVPN_GROUP` can be the name (or identifier) of a group of servers configured for specific use (as defined by NordVPN). Valid values as of March 2019: "Double VPN", "Onion Over VPN", "Ultra fast TV", "Anti DDoS", "Dedicated IP", "Standard VPN servers", "Netflix USA", "P2P", "Obfuscated Servers", "Europe", "The Americas", "Asia Pacific", "Africa, the Middle East and India". This variable is optional but helps to get a server suited for your application. If this parameter is invalid or cannot be satisfied, it will be ignored with a warning (check logs).

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-echo "tunnelDown: Tunnel is down, stopping transmission and tinyproxy..."
+echo "=> tunnelDown script execution"
 
 /importedScripts/transmission/stop_transmission.sh
 /importedScripts/tinyproxy/stop_tinyproxy.sh
 
-echo "tunnelDown: transmission and tinyproxy shutdown scripts executed :(" 
+echo "=> tunnelDown executed, Transmission and Tinyproxy shut down :(" 
